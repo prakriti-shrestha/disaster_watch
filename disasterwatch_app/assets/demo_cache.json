@@ -1,0 +1,91 @@
+[
+  {
+    "scenario_id": "collapse_north",
+    "responder_id": "Unit_7",
+    "gps_lat": 28.6139,
+    "gps_lng": 77.209,
+    "transcript": "Three-story structural collapse on north side of Main Street. Approximately fifteen to twenty people may be trapped. Structure unstable. Need urgent search and rescue.",
+    "image_filename": "img1.jpg",
+    "intelligence": {
+      "incident_type": "structural_collapse",
+      "severity": "high",
+      "hazards": [
+        "unstable_structure",
+        "debris",
+        "blocked_access"
+      ],
+      "response_needs": [
+        "search_rescue",
+        "structural_engineer",
+        "evacuation"
+      ],
+      "affected_estimate": "fifteen to twenty people",
+      "location_description": "north side of Main Street",
+      "visual_description": "A massive pile of rubble, concrete, and debris resulting from a structural collapse. The debris field is extensive, obscuring the ground level. In the background, multi-story residential buildings are visible. A road runs alongside the debris.",
+      "confidence": 0.95,
+      "reasoning": "The visual evidence clearly shows extensive structural collapse debris, matching the voice report of a structural collapse. The severity is high due to the trapped persons and unstable structure, necessitating search and rescue and engineering assessment."
+    },
+    "processing_time_ms": 35584
+  },
+  {
+    "scenario_id": "collapse_east",
+    "responder_id": "Medic_3",
+    "gps_lat": 28.6141,
+    "gps_lng": 77.2093,
+    "transcript": "Medical staging needed at east side of collapse. Two civilians injured but stable. Access clear from east side. Requesting ambulance.",
+    "image_filename": "img2.jpg",
+    "intelligence": {
+      "incident_type": "structural_collapse",
+      "severity": "high",
+      "hazards": [
+        "unstable_structure",
+        "debris",
+        "flooding",
+        "civilian_presence"
+      ],
+      "response_needs": [
+        "search_rescue",
+        "medical",
+        "evacuation",
+        "structural_engineer"
+      ],
+      "affected_estimate": "Two civilians injured",
+      "location_description": "Street scene with damaged buildings and significant water/mud.",
+      "visual_description": "A street scene showing significant debris and flooding on the road. Buildings on both sides appear damaged. Several civilians are walking through the muddy water.",
+      "confidence": 0.95,
+      "reasoning": "The visual evidence strongly suggests structural damage and flooding (consistent with a collapse or severe weather event). The voice note confirms a medical emergency requiring staging and ambulance, supporting the high severity and the need for search and rescue/medical response."
+    },
+    "processing_time_ms": 29312
+  },
+  {
+    "scenario_id": "flood_park_fifth",
+    "responder_id": "Unit_5",
+    "gps_lat": 28.615,
+    "gps_lng": 77.21,
+    "transcript": "Flood water rising at intersection of Park and Fifth. Waist deep. Three cars stranded. Two elderly residents need evacuation from second floor.",
+    "image_filename": "img3.jpg",
+    "intelligence": {
+      "incident_type": "flood",
+      "severity": "high",
+      "hazards": [
+        "flooding",
+        "unstable_structure",
+        "debris",
+        "blocked_access"
+      ],
+      "response_needs": [
+        "search_rescue",
+        "evacuation",
+        "medical",
+        "traffic_control",
+        "structural_engineer"
+      ],
+      "affected_estimate": "Two elderly residents",
+      "location_description": "Intersection of Park and Fifth",
+      "visual_description": "Significant debris and structural damage to buildings, with a large amount of rubble and dirt on the ground. Several vehicles are visible, some appearing stranded. Palm trees are present. The ground appears muddy and disturbed.",
+      "confidence": 0.9,
+      "reasoning": "The voice report indicates flooding and stranded vehicles requiring evacuation, which aligns with the visual evidence of significant debris, damaged structures, and disturbed ground consistent with a flood event. The severity is high due to the reported need for evacuation of residents."
+    },
+    "processing_time_ms": 32321
+  }
+]
