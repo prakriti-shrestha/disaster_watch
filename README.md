@@ -52,11 +52,11 @@ This demonstrates what we believe is the most under-explored Gemma 4 capability:
 
 ## Quick Demo (90 seconds)
 
-[Watch the demo video](YOUR_YOUTUBE_LINK_HERE)
+[Watch the demo video](https://youtu.be/uL8HqfUaJvE)
 
 [Download Android APK](releases/disasterwatch-v1.0.apk)
 
-[Try the Command Center](https://speak-wildfire-sympathy.ngrok-free.dev/command)
+[Try the Command Center](https://outpour-kilogram-ducking.ngrok-free.dev/command)
 
 ---
 
