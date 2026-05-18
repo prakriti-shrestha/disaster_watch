@@ -61,30 +61,7 @@ This demonstrates what we believe is the most under-explored Gemma 4 capability:
 ---
 
 ## Architecture
-┌─────────────────────────────────────────────────────┐
-│            RESPONDER MOBILE DEVICE                  │
-│   Camera    Voice/Text    GPS   →   Flutter UI      │
-└───────────────────────┬─────────────────────────────┘
-                        │ HTTP multipart
-                        ↓
-┌─────────────────────────────────────────────────────┐
-│            INFERENCE BACKEND (Gemma 4)              │
-│                                                     │
-│           Whisper STT (audio→text)                  │
-│                      ↓                              │
-│   Gemma 4 E2B (image + text → JSON intelligence)    │
-│                      ↓                              │
-│              Pydantic validation                    │
-│                      ↓                              │
-│           Spatial-temporal aggregator               │
-└────────────────────┬────────────────────────────────┘
-                     │ Polling
-                     ↓
-┌─────────────────────────────────────────────────────┐
-│              COMMAND CENTER (Browser)               │
-│         Live tactical map • Incident feed           │
-│            Cross-observation merge view             │
-└─────────────────────────────────────────────────────┘
+![Architecture](docs/arch.jpg)
 
 [Read the full architecture docs](ARCHITECTURE.md)
 
@@ -141,7 +118,7 @@ The mobile app includes a cached demo dataset (`assets/demo_cache.json`). When t
 
 ## Honest Limitations
 
-This is a **5-day research prototype**. Real deployment would require:
+This is a **research prototype**. Real deployment would require:
 
 - Mesh networking (current uses centralized server)
 - Battery profiling for sustained field use

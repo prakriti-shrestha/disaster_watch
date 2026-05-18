@@ -4,7 +4,7 @@ This document is a transparent acknowledgement of what DisasterWatch is and is n
 
 ## What This Is
 
-A 5-day research prototype demonstrating **technical feasibility** of multimodal AI fusion for distributed field intelligence. It demonstrates that:
+A research prototype demonstrating **technical feasibility** of multimodal AI fusion for distributed field intelligence. It demonstrates that:
 
 1. Gemma 4 can produce structured, validated JSON disaster intelligence from multimodal input
 2. Cross-observation aggregation can boost confidence through corroboration

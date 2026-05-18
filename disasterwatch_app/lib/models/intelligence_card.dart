@@ -37,90 +37,175 @@ class IntelligenceCard {
     this.fromCache = false,
   });
 
-  // Defensive string parser - handles nulls, numbers, etc.
+  // === DEFENSIVE PARSERS ===
+
   static String? _asString(dynamic v) {
     if (v == null) return null;
-    if (v is String) return v.isEmpty ? null : v;
-    return v.toString();
+    final s = v.toString().trim();
+    if (s.isEmpty || s == 'null') return null;
+    return s;
   }
 
-  // Defensive list parser
   static List<String> _asStringList(dynamic v) {
     if (v == null) return [];
     if (v is List) {
-      return v.where((e) => e != null).map((e) => e.toString()).toList();
+      return v
+          .where((e) => e != null)
+          .map((e) => e.toString())
+          .where((s) => s.isNotEmpty)
+          .toList();
+    }
+    if (v is String) {
+      return v
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
     }
     return [];
   }
 
-  // Defensive double parser
   static double? _asDouble(dynamic v) {
     if (v == null) return null;
     if (v is double) return v;
     if (v is int) return v.toDouble();
+    if (v is num) return v.toDouble();
     if (v is String) return double.tryParse(v);
     return null;
   }
 
-  factory IntelligenceCard.fromApiJson(Map<String, dynamic> json) {
-    // Defensive: backend may nest under 'intelligence' or return flat
-    final intel =
-        json.containsKey('intelligence') && json['intelligence'] is Map
-            ? Map<String, dynamic>.from(json['intelligence'] as Map)
-            : json;
-
-    final obs = json.containsKey('observation') && json['observation'] is Map
-        ? Map<String, dynamic>.from(json['observation'] as Map)
-        : <String, dynamic>{};
-
-    if (kDebugMode) {
-      print("Parsing intelligence: ${intel.keys.toList()}");
-      print("Parsing observation: ${obs.keys.toList()}");
-    }
-
-    return IntelligenceCard(
-      incidentType: _asString(intel['incident_type']) ?? 'unknown',
-      severity: _asString(intel['severity']) ?? 'medium',
-      hazards: _asStringList(intel['hazards']),
-      responseNeeds: _asStringList(intel['response_needs']),
-      affectedEstimate: _asString(intel['affected_estimate']),
-      locationDescription: _asString(intel['location_description']),
-      visualDescription: _asString(intel['visual_description']),
-      confidence: _asDouble(intel['confidence']) ?? 0.5,
-      reasoning: _asString(intel['reasoning']),
-      responderId: _asString(obs['responder_id']) ?? 'Unit_1',
-      timestamp:
-          _asString(obs['timestamp']) ?? DateTime.now().toIso8601String(),
-      gpsLat: _asDouble(obs['gps_lat']),
-      gpsLng: _asDouble(obs['gps_lng']),
-      processingTimeMs: (json['processing_time_ms'] as int?) ?? 0,
-      fromCache: false,
-    );
+  static int _asInt(dynamic v, [int fallback = 0]) {
+    if (v == null) return fallback;
+    if (v is int) return v;
+    if (v is double) return v.toInt();
+    if (v is num) return v.toInt();
+    if (v is String) return int.tryParse(v) ?? fallback;
+    return fallback;
   }
 
-  factory IntelligenceCard.fromCacheJson(Map<String, dynamic> json) {
-    final intel =
-        json.containsKey('intelligence') && json['intelligence'] is Map
-            ? Map<String, dynamic>.from(json['intelligence'] as Map)
-            : <String, dynamic>{};
+  // Recursively convert any Map to Map<String, dynamic>
+  static Map<String, dynamic> _safeMap(dynamic v) {
+    if (v is Map<String, dynamic>) return v;
+    if (v is Map) {
+      return v.map((key, value) => MapEntry(key.toString(), value));
+    }
+    return {};
+  }
 
-    return IntelligenceCard(
-      incidentType: _asString(intel['incident_type']) ?? 'unknown',
-      severity: _asString(intel['severity']) ?? 'medium',
-      hazards: _asStringList(intel['hazards']),
-      responseNeeds: _asStringList(intel['response_needs']),
-      affectedEstimate: _asString(intel['affected_estimate']),
-      locationDescription: _asString(intel['location_description']),
-      visualDescription: _asString(intel['visual_description']),
-      confidence: _asDouble(intel['confidence']) ?? 0.5,
-      reasoning: _asString(intel['reasoning']),
-      responderId: _asString(json['responder_id']) ?? 'Unit_1',
-      timestamp: DateTime.now().toIso8601String(),
-      gpsLat: _asDouble(json['gps_lat']),
-      gpsLng: _asDouble(json['gps_lng']),
-      processingTimeMs: (json['processing_time_ms'] as int?) ?? 25000,
-      fromCache: true,
-    );
+  factory IntelligenceCard.fromApiJson(Map<String, dynamic> rawJson) {
+    if (kDebugMode) {
+      print("=" * 60);
+      print("RAW API JSON TYPE: ${rawJson.runtimeType}");
+      print("RAW KEYS: ${rawJson.keys.toList()}");
+      print("Has 'intelligence': ${rawJson.containsKey('intelligence')}");
+      print("Has 'observation': ${rawJson.containsKey('observation')}");
+      if (rawJson.containsKey('intelligence')) {
+        print("intelligence type: ${rawJson['intelligence'].runtimeType}");
+      }
+      print("=" * 60);
+    }
+
+    try {
+      final json = _safeMap(rawJson);
+
+      // Get nested 'intelligence' map, or use root if flat
+      final Map<String, dynamic> intel = json.containsKey('intelligence')
+          ? _safeMap(json['intelligence'])
+          : json;
+
+      // Get nested 'observation' map
+      final Map<String, dynamic> obs = json.containsKey('observation')
+          ? _safeMap(json['observation'])
+          : <String, dynamic>{};
+
+      if (kDebugMode) {
+        print("Parsed intelligence keys: ${intel.keys.toList()}");
+        print("Parsed observation keys: ${obs.keys.toList()}");
+        print("incident_type raw: ${intel['incident_type']}");
+        print("severity raw: ${intel['severity']}");
+        print(
+            "hazards raw: ${intel['hazards']} (${intel['hazards']?.runtimeType})");
+        print("visual_description raw: ${intel['visual_description']}");
+      }
+
+      return IntelligenceCard(
+        incidentType: _asString(intel['incident_type']) ?? 'unknown',
+        severity: _asString(intel['severity']) ?? 'medium',
+        hazards: _asStringList(intel['hazards']),
+        responseNeeds: _asStringList(intel['response_needs']),
+        affectedEstimate: _asString(intel['affected_estimate']),
+        locationDescription: _asString(intel['location_description']),
+        visualDescription: _asString(intel['visual_description']),
+        confidence: _asDouble(intel['confidence']) ?? 0.5,
+        reasoning: _asString(intel['reasoning']),
+        responderId: _asString(obs['responder_id']) ?? 'Unit_1',
+        timestamp:
+            _asString(obs['timestamp']) ?? DateTime.now().toIso8601String(),
+        gpsLat: _asDouble(obs['gps_lat']),
+        gpsLng: _asDouble(obs['gps_lng']),
+        processingTimeMs: _asInt(json['processing_time_ms']),
+        fromCache: false,
+      );
+    } catch (e, stack) {
+      if (kDebugMode) {
+        print("❌ PARSE ERROR: $e");
+        print("Stack: $stack");
+        print("Raw input was: $rawJson");
+      }
+      // Return a minimal card so we don't crash
+      return IntelligenceCard(
+        incidentType: 'unknown',
+        severity: 'medium',
+        hazards: [],
+        responseNeeds: [],
+        confidence: 0.5,
+        responderId: 'parse_error',
+        timestamp: DateTime.now().toIso8601String(),
+        processingTimeMs: 0,
+        fromCache: false,
+        reasoning: 'PARSE ERROR: ${e.toString()}',
+      );
+    }
+  }
+
+  factory IntelligenceCard.fromCacheJson(Map<String, dynamic> rawJson) {
+    try {
+      final json = _safeMap(rawJson);
+      final Map<String, dynamic> intel = json.containsKey('intelligence')
+          ? _safeMap(json['intelligence'])
+          : <String, dynamic>{};
+
+      return IntelligenceCard(
+        incidentType: _asString(intel['incident_type']) ?? 'unknown',
+        severity: _asString(intel['severity']) ?? 'medium',
+        hazards: _asStringList(intel['hazards']),
+        responseNeeds: _asStringList(intel['response_needs']),
+        affectedEstimate: _asString(intel['affected_estimate']),
+        locationDescription: _asString(intel['location_description']),
+        visualDescription: _asString(intel['visual_description']),
+        confidence: _asDouble(intel['confidence']) ?? 0.5,
+        reasoning: _asString(intel['reasoning']),
+        responderId: _asString(json['responder_id']) ?? 'Unit_1',
+        timestamp: DateTime.now().toIso8601String(),
+        gpsLat: _asDouble(json['gps_lat']),
+        gpsLng: _asDouble(json['gps_lng']),
+        processingTimeMs: _asInt(json['processing_time_ms'], 25000),
+        fromCache: true,
+      );
+    } catch (e) {
+      if (kDebugMode) print("Cache parse error: $e");
+      return IntelligenceCard(
+        incidentType: 'unknown',
+        severity: 'medium',
+        hazards: [],
+        responseNeeds: [],
+        confidence: 0.5,
+        responderId: 'cache_error',
+        timestamp: DateTime.now().toIso8601String(),
+        processingTimeMs: 0,
+        fromCache: true,
+      );
+    }
   }
 
   Color get severityColor => EOC.severityColor(severity);
@@ -175,14 +260,13 @@ class IntelligenceCard {
     }
   }
 
-  // For debugging
   @override
   String toString() {
     return 'IntelligenceCard(type=$incidentType, severity=$severity, '
         'hazards=${hazards.length}, needs=${responseNeeds.length}, '
-        'visual=${visualDescription != null}, '
-        'location=${locationDescription != null}, '
-        'affected=${affectedEstimate != null}, '
-        'reasoning=${reasoning != null})';
+        'visual=${visualDescription != null ? "${visualDescription!.length}chars" : "null"}, '
+        'location=${locationDescription != null ? "${locationDescription!.length}chars" : "null"}, '
+        'affected=${affectedEstimate ?? "null"}, '
+        'reasoning=${reasoning != null ? "${reasoning!.length}chars" : "null"})';
   }
 }

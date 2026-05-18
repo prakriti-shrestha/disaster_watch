@@ -10,6 +10,8 @@ DisasterWatch operates as a three-tier architecture:
 
 In the demo configuration, the inference layer runs on Google Colab (free T4 GPU). The architecture is designed so this layer can be swapped to Ollama-on-phone, on-prem servers, or commercial cloud without changes elsewhere.
 
+![Architecture](docs/arch.jpg)
+
 ## Inference Pipeline
 
 ### 1. Capture
