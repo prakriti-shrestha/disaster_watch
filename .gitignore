@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+venv/
+.env
+*.egg-info/
+
+# Flutter
+mobile/build/
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+mobile/ios/Pods/
+mobile/ios/.symlinks/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Don't commit secrets
+**/secrets.json
+**/*.env
+
+# Large generated files
+*.gguf
+*.bin
+*.safetensors
+
+# Generated demo cache (will be regenerated)
+# Comment out the next line if you want to include cached demos
+# mobile/assets/demo_cache.json
