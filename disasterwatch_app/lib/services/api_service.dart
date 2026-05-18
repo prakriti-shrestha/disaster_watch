@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/intelligence_card.dart';
@@ -68,13 +69,24 @@ class ApiService {
     formData.fields.add(MapEntry('responder_id', responderId));
 
     final response = await _dio.post('$_baseUrl/process', data: formData);
-    return IntelligenceCard.fromApiJson(response.data);
+
+    // DEBUG: Print the full response
+    if (kDebugMode) {
+      print("=" * 60);
+      print("API RESPONSE FROM GEMMA:");
+      print(const JsonEncoder.withIndent('  ').convert(response.data));
+      print("=" * 60);
+    }
+
+    return IntelligenceCard.fromApiJson(response.data as Map<String, dynamic>);
   }
 
   Future<List<IntelligenceCard>> getAllObservations() async {
     final r = await _dio.get('$_baseUrl/observations');
     final obs = r.data['observations'] as List;
-    return obs.map((j) => IntelligenceCard.fromApiJson(j)).toList();
+    return obs
+        .map((j) => IntelligenceCard.fromApiJson(j as Map<String, dynamic>))
+        .toList();
   }
 
   Future<List<Map<String, dynamic>>> loadDemoCache() async {

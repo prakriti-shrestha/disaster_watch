@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../models/intelligence_card.dart';
 import '../theme/eoc_theme.dart';
 import '../widgets/eoc_widgets.dart';
@@ -9,6 +10,20 @@ class IntelligenceScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // DEBUG: print what we received
+    if (kDebugMode) {
+      print("=" * 60);
+      print("INTEL SCREEN RECEIVED:");
+      print(card.toString());
+      print("  visualDescription: ${card.visualDescription}");
+      print("  locationDescription: ${card.locationDescription}");
+      print("  affectedEstimate: ${card.affectedEstimate}");
+      print("  hazards: ${card.hazards}");
+      print("  responseNeeds: ${card.responseNeeds}");
+      print("  reasoning: ${card.reasoning}");
+      print("=" * 60);
+    }
+
     final sevColor = card.severityColor;
     return Scaffold(
       backgroundColor: EOC.graphite,
@@ -21,7 +36,7 @@ class IntelligenceScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: EOC.charcoal,
                 border: Border(
-                  bottom: BorderSide(color: EOC.border),
+                  bottom: const BorderSide(color: EOC.border),
                   left: BorderSide(color: sevColor, width: 3),
                 ),
               ),
@@ -47,7 +62,7 @@ class IntelligenceScreen extends StatelessWidget {
                     color: sevColor,
                     child: Text(
                       card.severity.toUpperCase(),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: EOC.monoFont,
                         color: Colors.black,
                         fontSize: 10,
@@ -127,7 +142,7 @@ class IntelligenceScreen extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            SectorLabel(text: "MODEL CONFIDENCE"),
+                            const SectorLabel(text: "MODEL CONFIDENCE"),
                             const Spacer(),
                             Text(
                               "${(card.confidence * 100).toInt()}%",
@@ -155,11 +170,12 @@ class IntelligenceScreen extends StatelessWidget {
                             minHeight: 6,
                           ),
                         ),
-                        if (card.reasoning != null) ...[
+                        if (card.reasoning != null &&
+                            card.reasoning!.isNotEmpty) ...[
                           const SizedBox(height: 12),
                           Container(
                             padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               color: EOC.graphite,
                               border: Border(
                                   left: BorderSide(color: EOC.cyan, width: 2)),
@@ -178,8 +194,9 @@ class IntelligenceScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // === SCENE INTELLIGENCE ===
-                  if (card.visualDescription != null)
+                  // === SCENE INTELLIGENCE - WITH DEFENSIVE CHECKS ===
+                  if (card.visualDescription != null &&
+                      card.visualDescription!.isNotEmpty)
                     _DataPanel(
                       label: "VISUAL ANALYSIS",
                       content: card.visualDescription!,
@@ -187,7 +204,8 @@ class IntelligenceScreen extends StatelessWidget {
                       accent: EOC.cyan,
                     ),
 
-                  if (card.locationDescription != null)
+                  if (card.locationDescription != null &&
+                      card.locationDescription!.isNotEmpty)
                     _DataPanel(
                       label: "LOCATION DATA",
                       content: card.locationDescription!,
@@ -195,7 +213,8 @@ class IntelligenceScreen extends StatelessWidget {
                       accent: EOC.terrainGreen,
                     ),
 
-                  if (card.affectedEstimate != null)
+                  if (card.affectedEstimate != null &&
+                      card.affectedEstimate!.isNotEmpty)
                     _DataPanel(
                       label: "CASUALTY ESTIMATE",
                       content: card.affectedEstimate!,
@@ -219,6 +238,49 @@ class IntelligenceScreen extends StatelessWidget {
                       icon: Icons.local_fire_department_outlined,
                     ),
 
+                  // FALLBACK: if we have nothing else, show debug info
+                  if (card.visualDescription == null &&
+                      card.locationDescription == null &&
+                      card.affectedEstimate == null &&
+                      card.hazards.isEmpty &&
+                      card.responseNeeds.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: EOC.charcoal,
+                        border: Border.all(color: EOC.hazardYellow),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.warning,
+                                  color: EOC.hazardYellow, size: 16),
+                              const SizedBox(width: 8),
+                              Text("PARSE WARNING",
+                                  style: EOC.label
+                                      .copyWith(color: EOC.hazardYellow)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Intelligence data was received but no fields parsed. "
+                            "Check the debug console for the raw API response.",
+                            style: EOC.body.copyWith(fontSize: 12),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Raw fields detected:\n"
+                            "- incident_type: ${card.incidentType}\n"
+                            "- severity: ${card.severity}\n"
+                            "- confidence: ${card.confidence}",
+                            style: EOC.mono.copyWith(fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ),
+
                   // === METADATA FOOTER ===
                   Container(
                     margin: const EdgeInsets.only(top: 8),
@@ -227,7 +289,7 @@ class IntelligenceScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SectorLabel(text: "TELEMETRY"),
+                        const SectorLabel(text: "TELEMETRY"),
                         const SizedBox(height: 10),
                         _meta("RESPONDER", card.responderId, EOC.cyan),
                         _meta(
@@ -255,7 +317,7 @@ class IntelligenceScreen extends StatelessWidget {
             // === BOTTOM ACTION ===
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: EOC.charcoal,
                 border: Border(top: BorderSide(color: EOC.border)),
               ),
@@ -316,9 +378,9 @@ class _DataPanel extends StatelessWidget {
         color: EOC.charcoal,
         border: Border(
           left: BorderSide(color: accent, width: 2),
-          top: BorderSide(color: EOC.border),
-          right: BorderSide(color: EOC.border),
-          bottom: BorderSide(color: EOC.border),
+          top: const BorderSide(color: EOC.border),
+          right: const BorderSide(color: EOC.border),
+          bottom: const BorderSide(color: EOC.border),
         ),
       ),
       child: Column(
@@ -361,9 +423,9 @@ class _ChipPanel extends StatelessWidget {
         color: EOC.charcoal,
         border: Border(
           left: BorderSide(color: accent, width: 2),
-          top: BorderSide(color: EOC.border),
-          right: BorderSide(color: EOC.border),
-          bottom: BorderSide(color: EOC.border),
+          top: const BorderSide(color: EOC.border),
+          right: const BorderSide(color: EOC.border),
+          bottom: const BorderSide(color: EOC.border),
         ),
       ),
       child: Column(

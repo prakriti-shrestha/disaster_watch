@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../theme/eoc_theme.dart';
 
 class IntelligenceCard {
@@ -36,45 +37,87 @@ class IntelligenceCard {
     this.fromCache = false,
   });
 
+  // Defensive string parser - handles nulls, numbers, etc.
+  static String? _asString(dynamic v) {
+    if (v == null) return null;
+    if (v is String) return v.isEmpty ? null : v;
+    return v.toString();
+  }
+
+  // Defensive list parser
+  static List<String> _asStringList(dynamic v) {
+    if (v == null) return [];
+    if (v is List) {
+      return v.where((e) => e != null).map((e) => e.toString()).toList();
+    }
+    return [];
+  }
+
+  // Defensive double parser
+  static double? _asDouble(dynamic v) {
+    if (v == null) return null;
+    if (v is double) return v;
+    if (v is int) return v.toDouble();
+    if (v is String) return double.tryParse(v);
+    return null;
+  }
+
   factory IntelligenceCard.fromApiJson(Map<String, dynamic> json) {
-    final intel = (json['intelligence'] as Map<String, dynamic>?) ?? json;
-    final obs = (json['observation'] as Map<String, dynamic>?) ?? {};
+    // Defensive: backend may nest under 'intelligence' or return flat
+    final intel =
+        json.containsKey('intelligence') && json['intelligence'] is Map
+            ? Map<String, dynamic>.from(json['intelligence'] as Map)
+            : json;
+
+    final obs = json.containsKey('observation') && json['observation'] is Map
+        ? Map<String, dynamic>.from(json['observation'] as Map)
+        : <String, dynamic>{};
+
+    if (kDebugMode) {
+      print("Parsing intelligence: ${intel.keys.toList()}");
+      print("Parsing observation: ${obs.keys.toList()}");
+    }
+
     return IntelligenceCard(
-      incidentType: intel['incident_type']?.toString() ?? 'unknown',
-      severity: intel['severity']?.toString() ?? 'medium',
-      hazards: List<String>.from(intel['hazards'] ?? []),
-      responseNeeds: List<String>.from(intel['response_needs'] ?? []),
-      affectedEstimate: intel['affected_estimate']?.toString(),
-      locationDescription: intel['location_description']?.toString(),
-      visualDescription: intel['visual_description']?.toString(),
-      confidence: (intel['confidence'] as num?)?.toDouble() ?? 0.5,
-      reasoning: intel['reasoning']?.toString(),
-      responderId: obs['responder_id']?.toString() ?? 'Unit_1',
+      incidentType: _asString(intel['incident_type']) ?? 'unknown',
+      severity: _asString(intel['severity']) ?? 'medium',
+      hazards: _asStringList(intel['hazards']),
+      responseNeeds: _asStringList(intel['response_needs']),
+      affectedEstimate: _asString(intel['affected_estimate']),
+      locationDescription: _asString(intel['location_description']),
+      visualDescription: _asString(intel['visual_description']),
+      confidence: _asDouble(intel['confidence']) ?? 0.5,
+      reasoning: _asString(intel['reasoning']),
+      responderId: _asString(obs['responder_id']) ?? 'Unit_1',
       timestamp:
-          obs['timestamp']?.toString() ?? DateTime.now().toIso8601String(),
-      gpsLat: (obs['gps_lat'] as num?)?.toDouble(),
-      gpsLng: (obs['gps_lng'] as num?)?.toDouble(),
+          _asString(obs['timestamp']) ?? DateTime.now().toIso8601String(),
+      gpsLat: _asDouble(obs['gps_lat']),
+      gpsLng: _asDouble(obs['gps_lng']),
       processingTimeMs: (json['processing_time_ms'] as int?) ?? 0,
       fromCache: false,
     );
   }
 
   factory IntelligenceCard.fromCacheJson(Map<String, dynamic> json) {
-    final intel = (json['intelligence'] as Map<String, dynamic>?) ?? {};
+    final intel =
+        json.containsKey('intelligence') && json['intelligence'] is Map
+            ? Map<String, dynamic>.from(json['intelligence'] as Map)
+            : <String, dynamic>{};
+
     return IntelligenceCard(
-      incidentType: intel['incident_type']?.toString() ?? 'unknown',
-      severity: intel['severity']?.toString() ?? 'medium',
-      hazards: List<String>.from(intel['hazards'] ?? []),
-      responseNeeds: List<String>.from(intel['response_needs'] ?? []),
-      affectedEstimate: intel['affected_estimate']?.toString(),
-      locationDescription: intel['location_description']?.toString(),
-      visualDescription: intel['visual_description']?.toString(),
-      confidence: (intel['confidence'] as num?)?.toDouble() ?? 0.5,
-      reasoning: intel['reasoning']?.toString(),
-      responderId: json['responder_id']?.toString() ?? 'Unit_1',
+      incidentType: _asString(intel['incident_type']) ?? 'unknown',
+      severity: _asString(intel['severity']) ?? 'medium',
+      hazards: _asStringList(intel['hazards']),
+      responseNeeds: _asStringList(intel['response_needs']),
+      affectedEstimate: _asString(intel['affected_estimate']),
+      locationDescription: _asString(intel['location_description']),
+      visualDescription: _asString(intel['visual_description']),
+      confidence: _asDouble(intel['confidence']) ?? 0.5,
+      reasoning: _asString(intel['reasoning']),
+      responderId: _asString(json['responder_id']) ?? 'Unit_1',
       timestamp: DateTime.now().toIso8601String(),
-      gpsLat: (json['gps_lat'] as num?)?.toDouble(),
-      gpsLng: (json['gps_lng'] as num?)?.toDouble(),
+      gpsLat: _asDouble(json['gps_lat']),
+      gpsLng: _asDouble(json['gps_lng']),
       processingTimeMs: (json['processing_time_ms'] as int?) ?? 25000,
       fromCache: true,
     );
@@ -108,10 +151,14 @@ class IntelligenceCard {
     }
   }
 
-  String get displayType => incidentType
-      .split('_')
-      .map((w) => w.isEmpty ? '' : w[0].toUpperCase() + w.substring(1))
-      .join(' ');
+  String get displayType {
+    if (incidentType.isEmpty) return 'Unknown';
+    return incidentType
+        .split('_')
+        .where((w) => w.isNotEmpty)
+        .map((w) => w[0].toUpperCase() + w.substring(1))
+        .join(' ');
+  }
 
   String get severityCode {
     switch (severity.toLowerCase()) {
@@ -126,5 +173,16 @@ class IntelligenceCard {
       default:
         return 'SEV-?';
     }
+  }
+
+  // For debugging
+  @override
+  String toString() {
+    return 'IntelligenceCard(type=$incidentType, severity=$severity, '
+        'hazards=${hazards.length}, needs=${responseNeeds.length}, '
+        'visual=${visualDescription != null}, '
+        'location=${locationDescription != null}, '
+        'affected=${affectedEstimate != null}, '
+        'reasoning=${reasoning != null})';
   }
 }
